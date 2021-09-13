@@ -88,7 +88,7 @@ static void bubble_up(pqueue_t *q, size_t i)
     q->setpos(moving_node, i);
 }
 
-static size_t maxchild(pqueue_t *q, size_t i)
+static size_t minchild(pqueue_t *q, size_t i)
 {
     size_t child_node = left(i);
 
@@ -108,7 +108,7 @@ static void percolate_down(pqueue_t *q, size_t i)
     void *moving_node = q->d[i];
     pqueue_pri_t moving_pri = q->getpri(moving_node);
 
-    while ((child_node = maxchild(q, i)) &&
+    while ((child_node = minchild(q, i)) &&
            q->cmppri(moving_pri, q->getpri(q->d[child_node]))) {
         q->d[i] = q->d[child_node];
         q->setpos(q->d[i], i);
@@ -180,6 +180,7 @@ void *pqueue_pop(pqueue_t *q)
     q->d[1] = q->d[--q->size];
     percolate_down(q, 1);
 
+    q->setpos(head, 0);
     return head;
 }
 
@@ -197,13 +198,13 @@ void pqueue_dump(pqueue_t *q, FILE *out, pqueue_print_entry_f print)
 {
     int i;
 
-    fprintf(stdout,"posn\tleft\tright\tparent\tmaxchild\t...\n");
+    fprintf(stdout,"posn\tleft\tright\tparent\tminchild\t...\n");
     for (i = 1; i < q->size ;i++) {
         fprintf(stdout,
                 "%d\t%d\t%d\t%d\t%ul\t",
                 i,
                 left(i), right(i), parent(i),
-                (unsigned int)maxchild(q, i));
+                (unsigned int)minchild(q, i));
         print(out, q->d[i]);
     }
 }

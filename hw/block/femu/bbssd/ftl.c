@@ -103,6 +103,7 @@ static void ssd_init_lines(struct ssd *ssd)
         line->id = i;
         line->ipc = 0;
         line->vpc = 0;
+        line->pos = 0;
         /* initialize all the lines as free lines */
         QTAILQ_INSERT_TAIL(&lm->free_line_list, line, entry);
         lm->free_line_cnt++;
@@ -554,7 +555,12 @@ static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)
     }
     line->ipc++;
     ftl_assert(line->vpc > 0 && line->vpc <= spp->pgs_per_line);
-    line->vpc--;
+    if (line->pos) {
+        pqueue_change_priority(lm->victim_line_pq, line->vpc - 1, line);
+    } else {
+        line->vpc--;
+    }
+
     if (was_full_line) {
         /* move line: "full" -> "victim" */
         QTAILQ_REMOVE(&lm->full_line_list, line, entry);
